@@ -1,0 +1,17 @@
+version: '3.8'
+
+services:
+  my-express-server:
+    build: .
+    container_name: express_server_lite
+    restart: unless-stopped
+    ports:
+      - "8088:8088"
+    environment:
+      - NODE_ENV=production
+    env_file:
+      - .env
+    deploy:
+       resources:
+         limits:
+           memory: 300M
