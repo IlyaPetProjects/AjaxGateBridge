@@ -21,12 +21,12 @@ jobs:
           API_KEY: ${{ secrets.API_KEY }}
           PHONE_PATH_SALT: ${{ secrets.PHONE_PATH_SALT }}
           PHONE_TOKEN: ${{ secrets.PHONE_TOKEN }}
-          APP_PORT: ${{ env.APP_PORT }}
-          HEARTBEAT_MS: ${{ env.HEARTBEAT_MS }}
-          MIN_INTERVAL_SEC: ${{ env.MIN_INTERVAL_SEC }}
-          PHONE_HOST: ${{ env.PHONE_HOST }}
-          PHONE_PORT: ${{ env.PHONE_PORT }}
-          PHONE_TIMEOUT_MS: ${{ env.PHONE_TIMEOUT_MS }}
+          APP_PORT: ${{ vars.APP_PORT }}
+          HEARTBEAT_MS: ${{ vars.HEARTBEAT_MS }}
+          MIN_INTERVAL_SEC: ${{ vars.MIN_INTERVAL_SEC }}
+          PHONE_HOST: ${{ vars.PHONE_HOST }}
+          PHONE_PORT: ${{ vars.PHONE_PORT }}
+          PHONE_TIMEOUT_MS: ${{ vars.PHONE_TIMEOUT_MS }}
         run: |
           Set-Content -Path .env -Value "API_KEY=$env:API_KEY" -Encoding UTF8
           Add-Content -Path .env -Value "PHONE_PATH_SALT=$env:PHONE_PATH_SALT"
