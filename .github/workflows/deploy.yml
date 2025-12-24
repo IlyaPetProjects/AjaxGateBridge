@@ -1,0 +1,35 @@
+name: Deploy to Self-Hosted Runner (Windows)
+
+on:
+  push:
+    branches:
+      - master
+      - main
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: self-hosted
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Stop existing containers
+        run: docker-compose down
+        working-directory: ${{ github.workspace }}
+        continue-on-error: true
+
+      - name: Build and start containers
+        run: docker-compose up -d --build
+        working-directory: ${{ github.workspace }}
+
+      - name: Show running containers
+        run: docker ps
+
+      - name: Wait for application to start
+        run: Start-Sleep -Seconds 10
+
+      - name: Health check
+        run: Invoke-WebRequest -Uri http://localhost:8088 -UseBasicParsing
+        continue-on-error: true
