@@ -32,7 +32,7 @@ async function fetchWithTimeout(url, options = {}, timeoutMs = 5000) {
   try {
     return await fetch(url, {...options, signal: controller.signal});
   } catch (error) {
-    console.error(error);
+    console.error(`[${new Date().toISOString()}]`, error);
   } finally {
     clearTimeout(id);
   }
@@ -67,7 +67,7 @@ async function callPhone(host, gateId) {
 
   const rttMs = Math.round(performance.now() - t0);
 
-  const text = await res.text().catch((err) => console.error('[callPhone] Error while encoding response', err));
+  const text = await res.text().catch((err) => console.error(`[${new Date().toISOString()}] [callPhone] Error while encoding response`, err));
 
   return {ok: res.ok, status: res.status, text, rttMs};
 }
@@ -81,30 +81,38 @@ app.get("/health", (_req, res) => {
 
 app.post("/api/gates/:gateId/open", async (req, res) => {
   try {
+    const gateId = Number(req.params.gateId);
+
+    console.log(`[${new Date().toISOString()}] Try to open gate, gateId: ${gateId}`);
+
     if (req.get("X-API-Key") !== config.API_KEY) {
+      console.log(`[${new Date().toISOString()}] Unauthorized, gateId: ${gateId}`);
       return res.status(401).json({error: "Unauthorized"});
     }
 
-    const gateId = Number(req.params.gateId);
     if (![1, 2, 3, 4].includes(gateId)) {
+      console.log(`[${new Date().toISOString()}] Unknown gate_id, gateId: ${gateId}`);
       return res.status(400).json({error: "Unknown gate_id"});
     }
 
     if (!rateLimit(gateId)) {
+      console.log(`[${new Date().toISOString()}] Too Many Requests for this gate, gateId: ${gateId}`);
       return res.status(429).json({error: "Too Many Requests for this gate"});
     }
 
     const phoneResp = await callPhone(config.PHONE_HOST, gateId);
 
     if (!phoneResp) {
+      console.log(`[${new Date().toISOString()}] Phone returned nothing, gateId: ${gateId}`);
       return res.status(502).json({error: `Phone returned nothing`});
     }
 
     if (!phoneResp.ok) {
+      console.log(`[${new Date().toISOString()}] Phone returned ${phoneResp.status}, gateId: ${gateId}`);
       return res.status(502).json({error: `Phone returned ${phoneResp.status}`, body: phoneResp.text});
     }
 
-    return res.json({status: "ok"});
+    return res.json({ status: "ok" });
   } catch (err) {
     const msg = err?.name === "AbortError" ? "Phone timeout" : String(err);
     return res.status(502).json({error: `Phone bridge error: ${msg}`});
@@ -119,16 +127,16 @@ async function heartbeatOne() {
 
     if (!response) {
       phoneState.ok = false;
+      console.error(`[${new Date().toISOString()}] [heartbeatOne] Heartbeat request failed (empty response)`);
       return;
     }
 
     phoneState.ok = response.ok;
     phoneState.rttMs = Math.round(performance.now() - t0);
     phoneState.seenAt = Date.now();
-    console.log('[heartbeatOne] Heartbeat request ok');
   } catch (e) {
     phoneState.ok = false;
-    console.error('[heartbeatOne] Heartbeat request failed', e);
+    console.error(`[${new Date().toISOString()}] [heartbeatOne] Heartbeat request failed`, e);
   }
 }
 
@@ -137,5 +145,5 @@ setInterval(() => {
 }, config.HEARTBEAT_MS);
 
 app.listen(config.APP_PORT, "0.0.0.0", () => {
-  console.log(`GateBridge listening on http://0.0.0.0:${config.APP_PORT}`);
+  console.log(`[${new Date().toISOString()}] GateBridge listening on http://0.0.0.0:${config.APP_PORT}`);
 });
