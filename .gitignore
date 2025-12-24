@@ -1,3 +1,11 @@
 node_modules
 .idea
 .env
+
+# tasker folders
+tasker/.icn
+tasker/.stfolder
+tasker/log
+tasker/userguide
+tasker/cache
+tasker/scripts/config.json
