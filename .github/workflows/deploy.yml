@@ -15,6 +15,31 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Create .env file with secrets
+        shell: powershell
+        env:
+          API_KEY: ${{ secrets.API_KEY }}
+          PHONE_PATH_SALT: ${{ secrets.PHONE_PATH_SALT }}
+          PHONE_TOKEN: ${{ secrets.PHONE_TOKEN }}
+          APP_PORT: ${{ env.APP_PORT }}
+          HEARTBEAT_MS: ${{ env.HEARTBEAT_MS }}
+          MIN_INTERVAL_SEC: ${{ env.MIN_INTERVAL_SEC }}
+          PHONE_HOST: ${{ env.PHONE_HOST }}
+          PHONE_PORT: ${{ env.PHONE_PORT }}
+          PHONE_TIMEOUT_MS: ${{ env.PHONE_TIMEOUT_MS }}
+        run: |
+          Set-Content -Path .env -Value "API_KEY=$env:API_KEY" -Encoding UTF8
+          Add-Content -Path .env -Value "PHONE_PATH_SALT=$env:PHONE_PATH_SALT"
+          Add-Content -Path .env -Value "PHONE_TOKEN=$env:PHONE_TOKEN"
+          Add-Content -Path .env -Value "APP_PORT=$env:APP_PORT"
+          Add-Content -Path .env -Value "HEARTBEAT_MS=$env:HEARTBEAT_MS"
+          Add-Content -Path .env -Value "MIN_INTERVAL_SEC=$env:MIN_INTERVAL_SEC"
+          Add-Content -Path .env -Value "PHONE_HOST=$env:PHONE_HOST"
+          Add-Content -Path .env -Value "PHONE_PORT=$env:PHONE_PORT"
+          Add-Content -Path .env -Value "PHONE_TIMEOUT_MS=$env:PHONE_TIMEOUT_MS"
+
+          Write-Host ".env file created successfully"
+
       - name: Stop existing containers
         run: docker-compose down
         working-directory: ${{ github.workspace }}
@@ -26,6 +51,15 @@ jobs:
 
       - name: Show running containers
         run: docker ps
+
+      - name: Cleanup secrets
+        if: always()
+        shell: powershell
+        run: |
+          if (Test-Path .env) { 
+            Remove-Item .env -Force 
+            Write-Host ".env file deleted"
+          }
 
       - name: Wait for application to start
         run: Start-Sleep -Seconds 10
