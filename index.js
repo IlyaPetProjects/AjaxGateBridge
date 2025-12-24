@@ -12,6 +12,13 @@ app.use(express.json());
 const lastGateTs = new Map();
 const phoneState = {ok: false, rttMs: null, seenAt: 0};
 
+const gatesConfig = {
+  1: { x: 300, y: 615 },
+  2: { x: 300, y: 1050 },
+  3: { x: 800, y: 615 },
+  4: { x: 800, y: 1050 },
+};
+
 /**
  * Simple fetch with timeout
  * @param {string} url URL to fetch
@@ -43,8 +50,9 @@ function rateLimit(gateId) {
 }
 
 async function callPhone(host, gateId) {
-  const url = `http://${host}:${config.PHONE_PORT}/${config.PHONE_PATH_SALT}/gate/${gateId}/open`;
-  const body = JSON.stringify({token: config.PHONE_TOKEN});
+  const url = `http://${host}:${config.PHONE_PORT}/${config.PHONE_PATH_SALT}/open`;
+  const gateConfig = gatesConfig[gateId];
+  const body = JSON.stringify({ token: config.PHONE_TOKEN, x: gateConfig.x, y: gateConfig.y });
   const t0 = performance.now();
 
   const res = await fetchWithTimeout(url, {
