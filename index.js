@@ -115,7 +115,7 @@ async function heartbeatOne() {
   try {
     const url = `http://${config.PHONE_HOST}:${config.PHONE_PORT}/ping`;
     const t0 = performance.now();
-    const response = await fetchWithTimeout(url, {}, 1200);
+    const response = await fetchWithTimeout(url, {}, 3000);
 
     if (!response) {
       phoneState.ok = false;
